@@ -1,0 +1,11 @@
+matplotlib==3.7.1
+nibabel==5.1.0
+numpy==1.24.4
+pandas==2.0.3
+plotly==5.15.0
+pymirc==0.29
+pytorch_ignite==0.4.12
+rich==13.4.2
+torch==2.0.0.post200
+torchmetrics==1.0.0
+torchvision==0.15.2a0+072ec57
