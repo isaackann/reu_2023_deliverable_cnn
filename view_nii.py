@@ -19,7 +19,7 @@ def view_nii(filename, slice_index, name=None):
     disp_kws = dict(cmap='Greys_r', vmin=0, vmax=1, origin='lower')
     
     ax.imshow(data[:, :, slice_index].T, **disp_kws)
-        
+    
     fig.tight_layout()
     plt.savefig(f'{filename if name is None else name}.png')
     plt.close()

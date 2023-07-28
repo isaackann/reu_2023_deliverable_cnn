@@ -168,31 +168,29 @@ class ValidationDataset(Dataset):
 
 class InferenceDataset(Dataset):
     """ 
-    Custom dataset for inference on a 128x128x128 tensor from NIfTI files
-    AGR images 
+    Custom dataset for inference on a 128x128x128 tensor from NIfTI files 
     """
 
-    def __init__(self, na_mri_1, na_mri_2, proton_mri, agr_mri):
+    def __init__(self, na_mri_1, na_mri_2, proton_mri):
         # Lists to store different MRI-type tensors
-        self.na_mr_1_tensors, self.na_mr_2_tensors, self.pro_mr_tensors, self.agr_tensors = [], [], [], []
+        self.na_mr_1_tensors, self.na_mr_2_tensors, self.pro_mr_tensors = [], [], []
         
         na_scale = get_tensors_from_nii(na_mri_1, self.na_mr_1_tensors)
         get_tensors_from_nii(na_mri_2, self.na_mr_2_tensors, norm=na_scale)
-        get_tensors_from_nii(agr_mri, self.agr_tensors, norm=na_scale)
         get_tensors_from_nii(proton_mri, self.pro_mr_tensors)
                         
     def __len__(self):
         return 1
     
     def __getitem__(self, idx):  
-        na_mr_1, na_mr_2 = self.na_mr_1_tensors[idx], self.na_mr_2_tensors[idx]
-        pro_mr, agr_mr = self.pro_mr_tensors[idx], self.agr_tensors[idx]
+        na_mr_1 = self.na_mr_1_tensors[idx]
+        na_mr_2 = self.na_mr_2_tensors[idx]
+        pro_mr = self.pro_mr_tensors[idx]
         
         # Concatenate Na and Proton MR tensors along channel dimension
-        concat_tensor = torch.stack((na_mr_1, na_mr_2, pro_mr), dim=0)        
-        agr_tensor = agr_mr.unsqueeze(dim=0)  # Add channel dimension to agr tensor
+        concat_tensor = torch.stack((na_mr_1, na_mr_2, pro_mr), dim=0)
 
-        return concat_tensor, agr_tensor
+        return concat_tensor, torch.zeros(128, 128, 128)  # Label not necessary for inference
 
 
 """ Custom dataset used for sanity check that randomizes the structural proton MRI prior """

@@ -8,7 +8,8 @@ import torch, torch.nn as nn
     Proton MRI scan to produce a high-res AGR of the Na MRI This model accepts and reproduces 
     3D images.
     
-    Follow this link to see model architecture: https://imgur.com/a/q5dntpD """
+    Follow this link to see model architecture: https://imgur.com/a/q5dntpD 
+"""
 
 
 """ Double convolution pipeline that increases/decreases the number of features 

@@ -21,7 +21,6 @@ def main():
     parser.add_argument("na_mri_1", help="Absolute path of first Sodium MRI NII directory")
     parser.add_argument("na_mri_2", help="Absolute path of second Sodium MRI NII directory")
     parser.add_argument("proton_mri", help="Absolute path of Proton MRI NII directory")
-    parser.add_argument("agr_mri", help="Absolute path of Sodium AGR NII directory")
     parser.add_argument("weights_filename", help="Absolute path of CNN weights file")
     parser.add_argument("--output_filename", help="Directory to save predicted AGR under",
                         default=None)
@@ -31,7 +30,8 @@ def main():
     #-------------------------------------------------------------------------------------------------
     # Load libraries and modules
 
-    import torch, torch.nn as nn
+    import torch
+    import torch.nn as nn
     import nibabel as nib
     import numpy as np
     from model_modules import SuperResUNetCNN
@@ -46,7 +46,6 @@ def main():
     na_mri_1 = args.na_mri_1
     na_mri_2 = args.na_mri_2
     proton_mri = args.proton_mri
-    agr_mri = args.agr_mri
     
     weights_filename = args.weights_filename
     output_filename = args.output_filename
@@ -69,7 +68,7 @@ def main():
     #-------------------------------------------------------------------------------------------------
     # Load and preprocess data from input Sodium/Proton MRI and target Sodium AGR files
         
-    dataset = InferenceDataset(na_mri_1,na_mri_2, proton_mri, agr_mri)
+    dataset = InferenceDataset(na_mri_1,na_mri_2, proton_mri)
     dataloader = DataLoader(dataset, batch_size=1)
     
     #-------------------------------------------------------------------------------------------------
@@ -89,7 +88,7 @@ def main():
     pred_array = np.transpose(pred_array, (1, 2, 0))
         
     # Retrieve header and affine matrix for nifti file
-    target_image = nib.load(agr_mri)
+    target_image = nib.load(na_mri_1)
     target_header, target_affine = target_image.header, target_image.affine
     
     # Create and save new Nifti image objects
