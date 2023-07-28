@@ -1,29 +1,19 @@
-import torch
-import torch.nn as nn
+import torch, torch.nn as nn
 
 
 """ Isaac Kan 7.27.23
-    ----------------------------------------------------------------------------------------------
+    -----------------
     This file contains the implementation of a U-Net style convolutional neural network for 
     MRI super-resolution. The network takes in 2 low-res Na MRI scans and a high-res 
-    Proton MRI scan to produce a high-res AGR of the Na MRI.
+    Proton MRI scan to produce a high-res AGR of the Na MRI This model accepts and reproduces 
+    3D images.
     
-    This model accepts and reproduces 3D images.
-    
-    Follow this link to see model architecture: https://imgur.com/a/q5dntpD 
-"""
+    Follow this link to see model architecture: https://imgur.com/a/q5dntpD """
 
 
-#-------------------------------------------------------------------------------------------------
-# Modules used to build the U-Net network
-
-
+""" Double convolution pipeline that increases/decreases the number of features 
+    [Conv2d -> BatchNorm -> ReLU] x2 """
 class DoubleConv3d(nn.Module):
-    """ 
-    Double convolution pipeline that increases/decreases the number of features 
-     - [Conv2d -> BatchNorm -> ReLU] x2 
-    """
-    
     def __init__(self, in_channels, out_channels, mid_channels=None):
         super().__init__()
         
@@ -43,13 +33,9 @@ class DoubleConv3d(nn.Module):
         return self.double_conv_3d(x)
     
 
+""" Module used in the encoding half of the U-Net. Image size is decreased with 2x2 max-pooling 
+    and double convolution is applied to double the number of features """
 class SendDown(nn.Module):
-    """ 
-    Module used in the encoding half of the U-Net. 
-     - Image size is decreased with 2x2 max-pooling 
-     - Double convolution is applied to double the number of features 
-    """
-
     def __init__(self, in_channels, out_channels):
         super().__init__()
         
@@ -62,13 +48,9 @@ class SendDown(nn.Module):
         return self.maxpool_and_conv(x)
     
 
+""" Module used in the decoding half of the U-Net. Image size is doubled with upsampling and
+    double convolution is applied to halve the number of features """
 class SendUp(nn.Module):
-    """ 
-    Module used in the decoding half of the U-Net. 
-     - Image size is doubled with upsampling
-     - Double convolution is applied to halve the number of features 
-    """
-
     def __init__(self, in_channels, out_channels):
         super().__init__()
         
@@ -88,15 +70,8 @@ class SendUp(nn.Module):
         return self.conv3d(torch.cat((lower, left), dim=1))
 
 
-#-------------------------------------------------------------------------------------------------
-# Implementation of U-Net CNN
-
+""" Class implementation of CNN """
 class SuperResUNetCNN(nn.Module):
-    """ 
-    Class implementation of CNN
-    See architecture visualization here: https://imgur.com/a/q5dntpD
-    """
-
     def __init__(self):
         super().__init__()
         
