@@ -61,6 +61,7 @@ def get_tensors_from_nii(nib_filename, destination_list, norm=None, mode=None):
     
     if norm is None:
         norm = np.percentile(data, 99.9)
+        
     data /= norm
 
     if mode == 'Shifted Proton MRI':  # For sanity check
@@ -85,41 +86,43 @@ class TrainingDataset(Dataset):
     The 'label' at an index is the corresponding n x n x n sample from the AGR MRI tensor 
     """
     
-    def __init__(self, folder_list, batch_size, n):
-        # Lists to store different MRI-type tensors
+    def __init__(self, training_files, batch_size, n):
         self.na_mr_1_tensors, self.na_mr_2_tensors, self.pro_mr_tensors, self.agr_tensors = [], [], [], []
-        self.batch_size, self.n = batch_size, n
+        self.batch_size = batch_size
+        self.n = n
         
-        # Normalize and append all 128x128x128 tensors for given patient profiles to respective lists
-        for folder in folder_list:
-            subject = Path(f'00_reu_sodium_cnn_data/{folder}')
-            na_mr1_file, na_mr2_file = subject / 'input_01_na_mr_1st_echo.nii', subject / 'input_02_na_mr_2nd_echo.nii'
-            pro_mr_file, agr_file = subject / 'input_03_proton_mr.nii', subject / 'target_na_mr_agr.nii'
+        # Append all 128x128x128 tensors in given file groups to respective lists
+        for file_group in training_files:
+            na_mr1_file, na_mr2_file, pro_mr_file, agr_file = file_group
             
+            # Normalize Na MRI tensors using 1st Sodium MRI
             na_scale = get_tensors_from_nii(na_mr1_file, self.na_mr_1_tensors)
             get_tensors_from_nii(na_mr2_file, self.na_mr_2_tensors, norm=na_scale)
-            get_tensors_from_nii(agr_file, self.agr_tensors, norm=na_scale)
             get_tensors_from_nii(pro_mr_file, self.pro_mr_tensors)
-                    
+            get_tensors_from_nii(agr_file, self.agr_tensors, norm=na_scale)
+         
     def __len__(self):
         return self.batch_size
     
     def __getitem__(self, idx):
         # Hijack idx to randomly select a tensor from tensor list
-        idx = randint(0, len(self.agr_tensors) - 1)  
+        idx = randint(0, len(self.agr_tensors) - 1)
+        
         na_mr_1, na_mr_2 = self.na_mr_1_tensors[idx], self.na_mr_2_tensors[idx]
         pro_mr, agr_mr = self.pro_mr_tensors[idx], self.agr_tensors[idx]
         
-        # Crop tensors using bounds of Target AGR 
-        na_mr_1, na_mr_2, pro_mr, agr_mr = crop_tensors([na_mr_1, na_mr_2, pro_mr, agr_mr], find_bounds(agr_mr))
+        # Crop tensors using bounds of Target AGR
+        bounds = find_bounds(agr_mr)
+        na_mr_1, na_mr_2, pro_mr, agr_mr = crop_tensors((na_mr_1, na_mr_2, pro_mr, agr_mr), bounds)
 
         # Concatenate Na and Proton MRI tensors along channel dimension
         concat_tensor = torch.stack((na_mr_1, na_mr_2, pro_mr), dim=0)
         
         # Randomly select a n x n x n patch from the concatenated & agr tensor
-        x, y, z = agr_mr.shape[0], agr_mr.shape[1], agr_mr.shape[2]  # get bounds of tensor
+        x, y, z = agr_mr.shape
         x, y, z = randint(0, x - self.n), randint(0, y - self.n), randint(0, z - self.n)
         
+        # Ensure correct channel dimensions 
         sample_tensor = concat_tensor[:, x : x + self.n, y : y + self.n, z : z + self.n]
         agr_tensor = agr_mr[x : x + self.n, y : y + self.n, z : z + self.n].unsqueeze(dim=0)
         
@@ -134,24 +137,19 @@ class ValidationDataset(Dataset):
     Na MRI #1, Na MRI #2, and Proton MRI files 
     """
 
-    def __init__(self, folder_list):
-        if isinstance(folder_list, str): folder_list = [folder_list]
-        
-        # Lists to store different MRI-type tensors
+    def __init__(self, validation_files):
         self.na_mr_1_tensors, self.na_mr_2_tensors, self.pro_mr_tensors, self.agr_tensors = [], [], [], []
         
-        # Append all 128x128x128 tensors for given patient profile(s) to respective lists
-        for folder in folder_list:
-            subject = Path(f'00_reu_sodium_cnn_data/{folder}')
-            na_mr1_file, na_mr2_file = subject / 'input_01_na_mr_1st_echo.nii', subject / 'input_02_na_mr_2nd_echo.nii'
-            pro_mr_file, agr_file = subject / 'input_03_proton_mr.nii', subject / 'target_na_mr_agr.nii'
-
+        # Append all 128x128x128 tensors in given file groups to respective lists
+        for file_group in validation_files:
+            na_mr1_file, na_mr2_file, pro_mr_file, agr_file = file_group
+            
+            # Normalize Na MRI tensors using 1st Sodium MRI
             na_scale = get_tensors_from_nii(na_mr1_file, self.na_mr_1_tensors)
             get_tensors_from_nii(na_mr2_file, self.na_mr_2_tensors, norm=na_scale)
-            get_tensors_from_nii(agr_file, self.agr_tensors, norm=na_scale)
             get_tensors_from_nii(pro_mr_file, self.pro_mr_tensors)
-
-                            
+            get_tensors_from_nii(agr_file, self.agr_tensors, norm=na_scale)
+   
     def __len__(self):
         return len(self.agr_tensors)
     
@@ -300,5 +298,5 @@ def animate_agr(patient_index):
 
 """ Serialize a list to a file """
 def save_to_json(list, filename):
-    with open(f'model_data/{filename}.txt', 'w') as f:
+    with open(f'scripts/training_log/{filename}.txt', 'w') as f:
         json.dump(list, f)
