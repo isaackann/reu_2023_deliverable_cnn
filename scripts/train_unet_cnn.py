@@ -58,8 +58,8 @@ training_files = config["training_files"]
 validation_files = config["validation_files"]
 
 # Shuffle order of files
-random.shuffle([i for i in range(len(training_files))])
-random.shuffle([i for i in range(len(validation_files))])
+random.shuffle(training_files)
+random.shuffle(validation_files)
 
 #-------------------------------------------------------------------------------------------------
 # Set up model for training
@@ -175,9 +175,7 @@ with Progress() as progress:
             save_to_json(psnrs, f'Val PSNR ({cur_date})')
             save_to_json(ssims, f'Val SSIM ({cur_date})')
         
-        filename = f'scripts/training_log/3d_weights_{cur_date}.pth' if track_metrics else f'scripts/3d_weights_{cur_date}.pth'
-        torch.save(model.state_dict(), filename)
-            
+        torch.save(model.state_dict(), f'scripts/3d_weights_{cur_date}.pth')            
         progress.update(task, completed=b+1)  # Update progress bar
             
 print(f'Model Training Session Completed!')
