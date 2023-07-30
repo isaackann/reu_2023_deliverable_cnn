@@ -12,9 +12,12 @@ import torch, torch.nn as nn
 """
 
 
-""" Double convolution pipeline that increases/decreases the number of features 
-    [Conv2d -> BatchNorm -> ReLU] x2 """
 class DoubleConv3d(nn.Module):
+    """ 
+    Double convolution pipeline that increases/decreases the number of features 
+    [Conv2d -> BatchNorm -> ReLU] x2 
+    """
+    
     def __init__(self, in_channels, out_channels, mid_channels=None):
         super().__init__()
         
@@ -34,9 +37,12 @@ class DoubleConv3d(nn.Module):
         return self.double_conv_3d(x)
     
 
-""" Module used in the encoding half of the U-Net. Image size is decreased with 2x2 max-pooling 
-    and double convolution is applied to double the number of features """
 class SendDown(nn.Module):
+    """ 
+    Module used in the encoding half of the U-Net. Image size is decreased with 2x2 max-pooling 
+    and double convolution is applied to double the number of features 
+    """
+
     def __init__(self, in_channels, out_channels):
         super().__init__()
         
@@ -49,9 +55,12 @@ class SendDown(nn.Module):
         return self.maxpool_and_conv(x)
     
 
-""" Module used in the decoding half of the U-Net. Image size is doubled with upsampling and
-    double convolution is applied to halve the number of features """
 class SendUp(nn.Module):
+    """ 
+    Module used in the decoding half of the U-Net. Image size is doubled with upsampling and
+    double convolution is applied to halve the number of features 
+    """
+
     def __init__(self, in_channels, out_channels):
         super().__init__()
         
@@ -71,8 +80,11 @@ class SendUp(nn.Module):
         return self.conv3d(torch.cat((lower, left), dim=1))
 
 
-""" Class implementation of CNN """
 class SuperResUNetCNN(nn.Module):
+    """ 
+    Class implementation of U-Net CNN with 3 layers 
+    """
+
     def __init__(self):
         super().__init__()
         
@@ -83,7 +95,6 @@ class SuperResUNetCNN(nn.Module):
         # Sequence of decoding modules to reconstruct the image
         self.up1, self.up2, self.up3 = SendUp(512, 128), SendUp(256, 64), SendUp(128, 64)
         self.output_layer = nn.Conv3d(64, 1, kernel_size=1)  # convolutional layer to produce final image
-        
     
     def forward(self, concat_tensor):
         # 3-channel concatenated tensor -> 64-channel convolution

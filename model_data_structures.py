@@ -191,8 +191,16 @@ class InferenceDataset(Dataset):
         return concat_tensor, torch.zeros(128, 128, 128)  # Label not necessary for inference
 
 
-""" Custom dataset used for sanity check that randomizes the structural proton MRI prior """
 class SanityDataset(Dataset):
+    """ 
+    Custom dataset used for sanity checks. Modes:
+    - Replace 2nd Sodium MRI with 1st Sodium MRI
+    - Replace 2nd Sodium MRI with black image
+    - Replace Proton MRI with black image
+    - Shift Proton MRI by 3 pixels
+    - Randomly rotate all MRIs
+    """
+
     def __init__(self, folder_list, mode):
         if isinstance(folder_list, str): folder_list = [folder_list]
         
@@ -275,8 +283,11 @@ ax1.set_title('CNN Prediction')
 ax2.set_title('Target AGR')
 
 
-""" Display single frame (sliced along z-axis) for GIF animation """
 def display_frame(t, pidx):
+    """ 
+    Display single frame (sliced along z-axis) for GIF animation 
+    """
+
     nn_filename = f'3d_agr_niis/{pidx}_agr.nii'
     alg_filename = f'00_reu_sodium_cnn_data/{pidx}/target_na_mr_agr.nii'
     
@@ -287,8 +298,11 @@ def display_frame(t, pidx):
     ax2.imshow(alg_image_data[:,:,t].T, **disp_kws)
     
     
-""" Read CNN-produced NII file & animate as a video with AGR for comparison """
 def animate_agr(patient_index):
+    """ 
+    Read CNN-produced NII file & animate as a video with AGR for comparison 
+    """
+
     animation = anim.FuncAnimation(fig, partial(display_frame, pidx=patient_index), frames=128, interval=100)
     print(f'{patient_index} Animation Rendered ... ', end='', flush=True)
     
@@ -296,7 +310,10 @@ def animate_agr(patient_index):
     print(f'{patient_index} Animation Saved!')
 
 
-""" Serialize a list to a file """
 def save_to_json(list, filename):
+    """ 
+    Serialize a list to a file 
+    """
+
     with open(f'scripts/training_log/{filename}.txt', 'w') as f:
         json.dump(list, f)

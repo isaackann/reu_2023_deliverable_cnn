@@ -3,6 +3,14 @@ if not '..' in sys.path: sys.path.append('..')
 import argparse
 import os
 
+
+""" Isaac Kan 7.29.23
+    ----------------------------------------------------------------------------------------------
+    Run this script (python -m scripts.train_unet_cnn.py) to train your own U-Net CNN model!
+    Training data not provided under PHI policies.
+"""
+
+
 #-------------------------------------------------------------------------------------------------
 # Get config json from terminal
 
@@ -86,6 +94,10 @@ validation_dataloader = DataLoader(validation_dataset, batch_size=1)
 # Loops for validation and training
 
 def train_loop(train_dataloader):
+    """
+    Perform predictions, backpropagation, and optimization on training dataset
+    """
+    
     model.train()
     
     for index, tensors in enumerate(train_dataloader):
@@ -104,9 +116,11 @@ def train_loop(train_dataloader):
         loss, current = loss.item(), (index + 1) * len(concat_tensor)
         print(f"loss: {loss:>7f}  [{current:>2d}/{len(train_dataloader.dataset):>2d}]")
 
-
-""" Validation/Test Loop"""
 def validation_loop(validation_dataloader):
+    """
+    Evaluate model performance on full 128x128x128 tensor from validation dataset
+    """
+    
     model.eval()
     
     val_loss = 0
@@ -133,7 +147,7 @@ def validation_loop(validation_dataloader):
     return avg_loss, loss_list, psnr_list, ssim_list
 
 #-------------------------------------------------------------------------------------------------
-# Run training and validation loops
+# Run training and validation loops (with progress bar!)
 
 avg_loss_list, losses, psnrs, ssims = [], [], [], []
 
