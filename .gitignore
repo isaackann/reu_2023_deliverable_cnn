@@ -1,0 +1,10 @@
+__pycache__/
+*.nii 
+*.png
+3d_weights_07_26.pth
+data/
+training_log/
+graph.py 
+make_config_json.py
+scripts/*.pth
+scripts/*train_session*/
