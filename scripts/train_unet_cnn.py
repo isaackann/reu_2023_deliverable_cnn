@@ -16,15 +16,12 @@ import os
 
 parser = argparse.ArgumentParser(description="Train U-Net CNN for Sodium MRI AGR")
 parser.add_argument("--config_json", default="scripts/train_config.json", help="Filename for training config json.")
-parser.add_argument("--track_metrics", default=False, help="Save loss, PSNR, and SSIm at each batch.")
+parser.add_argument("--track_metrics", default=False, help="Save loss, PSNR, and SSIM at each batch.")
 
 args = parser.parse_args()
 
 config_json = args.config_json
 track_metrics = args.track_metrics
-
-if track_metrics and not os.path.exists('scripts/training_log'):
-    os.makedirs('scripts/training_log')
 
 #-------------------------------------------------------------------------------------------------
 # Load libraries and modules
@@ -42,10 +39,20 @@ from rich.progress import Progress
 from datetime import datetime
 
 #-------------------------------------------------------------------------------------------------
-# Process training config file
+# Process training config file and create directory to save training session data
 
+index = 1
+cur_date = datetime.now().strftime("%m_%d")
+
+while os.path.exists(f'scripts/{cur_date}_train_session_{index}'):
+    index += 1
+    
+train_log_folder = f'scripts/{cur_date}_train_session_{index}'    
+os.mkdir(train_log_folder)
+        
 with open(config_json, 'r') as f:
     config = json.load(f)
+    save_to_json(config, train_log_folder, f'train_config_{cur_date}', config=True)
 
 num_batches = config["num_batches"]
 batch_size = config["batch_size"]
@@ -78,8 +85,6 @@ SCHEDULER = torch.optim.lr_scheduler.ReduceLROnPlateau(OPTIMIZER, **schedule_kwa
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model.to(device)
 print(f'Using {device} device')
-
-cur_date = datetime.now().strftime("%m_%d")  # Used in model weights filename
 
 #-------------------------------------------------------------------------------------------------
 # Load data
@@ -170,12 +175,12 @@ with Progress() as progress:
         ssims.extend(ssim_list)
         
         if track_metrics:
-            save_to_json(avg_loss_list, f'Avg Loss ({cur_date})')
-            save_to_json(losses, f'Val Loss ({cur_date})')
-            save_to_json(psnrs, f'Val PSNR ({cur_date})')
-            save_to_json(ssims, f'Val SSIM ({cur_date})')
+            save_to_json(avg_loss_list, train_log_folder, f'Val Avg Loss ({cur_date})')
+            save_to_json(losses, train_log_folder, f'Val Loss ({cur_date})')
+            save_to_json(psnrs,  train_log_folder, f'Val PSNR ({cur_date})')
+            save_to_json(ssims,  train_log_folder, f'Val SSIM ({cur_date})')
         
-        torch.save(model.state_dict(), f'scripts/3d_weights_{cur_date}.pth')            
+        torch.save(model.state_dict(), f'{train_log_folder}/train_weights_{cur_date}.pth')            
         progress.update(task, completed=b+1)  # Update progress bar
             
 print(f'Model Training Session Completed!')

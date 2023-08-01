@@ -310,10 +310,12 @@ def animate_agr(patient_index):
     print(f'{patient_index} Animation Saved!')
 
 
-def save_to_json(list, filename):
+def save_to_json(data, folder, filename, config=None):
     """ 
     Serialize a list to a file 
     """
+    
+    json_filename = f'{folder}/{filename}.json' if config == True else f'{folder}/{filename}.txt'
 
-    with open(f'scripts/training_log/{filename}.txt', 'w') as f:
-        json.dump(list, f)
+    with open(json_filename, 'w') as f:
+        json.dump(data, f)
