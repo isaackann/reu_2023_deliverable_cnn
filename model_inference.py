@@ -8,6 +8,9 @@ import argparse
     
     The model accepts 2 Sodium MRI NIfTI files and one Proton MRI NIfTI files.
     A NIfTI file is produced for the reconstruction. 
+    
+    Terminal prompt example:
+    python model_inference.py data/CSF_H035/input_01_na_mr_1st_echo.nii data/CSF_H035/input_02_na_mr_2nd_echo.nii data/CSF_H035/input_03_proton_mr.nii 
 """
 
 

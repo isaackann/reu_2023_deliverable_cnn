@@ -6,8 +6,11 @@ import os
 
 """ Isaac Kan 7.29.23
     ----------------------------------------------------------------------------------------------
-    Run this script (python -m scripts.train_unet_cnn.py) to train your own U-Net CNN model!
+    Run this script to train your own U-Net CNN model!
     Training data not provided under PHI policies.
+    
+    Terminal prompt example:
+    python -m scripts.train_unet_cnn.py --config_json scripts/train_config.json --track_metrics True
 """
 
 
@@ -59,7 +62,7 @@ batch_size = config["batch_size"]
 patch_size = config["patch_size"]
 learning_rate = config["learning_rate"]
 
-np.random.seed(26)  # Set random seed for reproducibility
+# np.random.seed(26)  # Set random seed for reproducibility
 
 training_files = config["training_files"]
 validation_files = config["validation_files"]

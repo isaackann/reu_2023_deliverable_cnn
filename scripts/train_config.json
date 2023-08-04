@@ -1,7 +1,7 @@
 {  
   "num_batches"     : 5000, 
   "batch_size"      : 64, 
-  "patch_size"      : 30, 
+  "patch_size"      : 32, 
   "learning_rate"   : 0.001, 
   "training_files"  : [
                        ["data/CSF_H018/input_01_na_mr_1st_echo.nii", 
